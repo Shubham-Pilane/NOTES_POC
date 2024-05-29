@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const axios = require('axios'); 
 const PdfPrinter = require('pdfmake');
+const imageToBase64 = require('image-to-base64');
 
 
 const app = express();
