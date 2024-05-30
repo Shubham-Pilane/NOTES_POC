@@ -5,7 +5,8 @@ const PdfPrinter = require('pdfmake');
 
 const app = express();
 const port = 8000;
-let attachmentCount =0
+let attachmentCount =0;
+let notesCount=0;
 // Fetch the image then convert it to base64
 async function getBase64ImageFromURL(url) {
     const startTime = Date.now();
@@ -42,6 +43,7 @@ async function createPdfDefinition2(notes) {
     const startTime = Date.now();
     const content = [];
     for (const note of notes) {
+        notesCount ++
         content.push(
             { text: `Title: ${note.title}`, style: 'header' },
             { text: `Description: ${note.description}`, style: 'subheader' },
@@ -89,12 +91,17 @@ async function createPdfDefinition2(notes) {
 }
 
 // Route for download pdf
-app.get('/', async (req, res) => {
+app.get('/pdf', async (req, res) => {
     const startTime = Date.now();
-    try {
+    attachmentCount=0
+    notesCount=0
+    try { 
         const docDefinition = await createPdfDefinition2(notes);
-        const pdfDoc = printer.createPdfKitDocument(docDefinition);
-
+        docDefinition.content.push(
+            { text: `Total Attachments: ${attachmentCount}`, style: 'header', margin: [0, 20, 0, 0] },
+            { text: `Total Notes: ${notesCount}`, style: 'header' }
+        );
+        const pdfDoc = printer.createPdfKitDocument(docDefinition,attachmentCount,notesCount);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="notes.pdf"');
 
@@ -108,6 +115,7 @@ app.get('/', async (req, res) => {
     const duration = (endTime - startTime) / 1000;
     console.log(`Total response time for / route: ${duration.toFixed(3)}s`);
     console.log(`Total Attachments : ${attachmentCount}`)
+    console.log(`Total Notes : ${notesCount}`)
 });
 
 app.listen(port, () => {
